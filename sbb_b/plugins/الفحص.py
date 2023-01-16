@@ -1,150 +1,111 @@
 import random
+import re
 import time
 from datetime import datetime
 from platform import python_version
 
 import requests
-from telethon import Button, events, version
+from telethon import version
 from telethon.errors.rpcerrorlist import (
     MediaEmptyError,
     WebpageCurlFailedError,
     WebpageMediaEmptyError,
 )
+from telethon.events import CallbackQuery
 
-from sbb_b import StartTime, jmthonversion, sbb_b
+from zthon import StartTime, zedub, zedversion
 
 from ..Config import Config
 from ..core.managers import edit_or_reply
-from ..helpers.functions import check_data_base_heal_th, get_readable_time
+from ..helpers.functions import zedalive, check_data_base_heal_th, get_readable_time
 from ..helpers.utils import reply_id
 from ..sql_helper.globals import gvarstatus
 from . import mention
 
+plugin_category = "العروض"
+STATS = gvarstatus("Z_STATS") or "فحص"
 
-@sbb_b.ar_cmd(pattern="فحص$")
+
+@zedub.zed_cmd(pattern=f"{STATS}$")
 async def amireallyalive(event):
     reply_to_id = await reply_id(event)
-    ANIME = None
-    jmthon_caption = gvarstatus("ALIVE_TEMPLATE") or temp
-    if "ANIME" in jmthon_caption:
-        data = requests.get("https://animechan.vercel.app/api/random").json()
-        ANIME = f"**“{data['quote']}” - {data['character']} ({data['anime']})**"
     uptime = await get_readable_time((time.time() - StartTime))
     start = datetime.now()
-    jmthonevent = await edit_or_reply(event, "**- جار التأكد انتظر قليلا**")
+    zedevent = await edit_or_reply(event, "**⎆┊جـاري .. فحـص البـوت الخـاص بك**")
     end = datetime.now()
     ms = (end - start).microseconds / 1000
     _, check_sgnirts = check_data_base_heal_th()
-    EMOJI = gvarstatus("ALIVE_EMOJI") or "  - "
-    ALIVE_TEXT = gvarstatus("ALIVE_TEXT") or "**سورس جمثون يعمل بنجاح**"
-    JMTHON_IMG = gvarstatus("ALIVE_PIC")
-    caption = jmthon_caption.format(
+    Z_EMOJI = gvarstatus("ALIVE_EMOJI") or "✥┊"
+    ALIVE_TEXT = gvarstatus("ALIVE_TEXT") or "** بـوت 𝘼𝙇𝘼𝙋𝘼𝙏𝙃  يعمـل .. بنجـاح ☑️ 𓆩 **"
+    ZED_IMG = gvarstatus("ALIVE_PIC")
+    zed_caption = gvarstatus("ALIVE_TEMPLATE") or zed_temp
+    caption = zed_caption.format(
         ALIVE_TEXT=ALIVE_TEXT,
-        ANIME=ANIME,
-        EMOJI=EMOJI,
+        Z_EMOJI=Z_EMOJI,
         mention=mention,
         uptime=uptime,
         telever=version.__version__,
-        jmver=jmthonversion,
+        zdver=zedversion,
         pyver=python_version(),
         dbhealth=check_sgnirts,
         ping=ms,
     )
-    if JMTHON_IMG:
-        JMTHON = list(JMTHON_IMG.split())
-        PIC = random.choice(JMTHON)
+    if ZED_IMG:
+        ZED = [x for x in ZED_IMG.split()]
+        PIC = random.choice(ZED)
         try:
             await event.client.send_file(
                 event.chat_id, PIC, caption=caption, reply_to=reply_to_id
             )
-            await jmthonevent.delete()
+            await zedevent.delete()
         except (WebpageMediaEmptyError, MediaEmptyError, WebpageCurlFailedError):
             return await edit_or_reply(
-                jmthonevent,
-                f"**رابط الصورة غير صحيح**\nعليك الرد على رابط الصورة ب .اضف صورة الفحص",
+                zedevent,
+                f"**⌔∮ عـذراً عليـك الـرد ع صـوره او ميـديـا  ⪼  `.اضف صورة الفحص` <بالرد ع الصـوره او الميـديـا> ",
             )
     else:
         await edit_or_reply(
-            jmthonevent,
+            zedevent,
             caption,
         )
 
 
-temp = """{ALIVE_TEXT}
-**{EMOJI} قاعدة البيانات :** `{dbhealth}`
-**{EMOJI} اصدار التيليثون:** `{telever}`
-**{EMOJI} اصدار جمثون :** `{jmver}`
-**{EMOJI} اصدار البايثون :** `{pyver}`
-**{EMOJI} الوقت :** `{uptime}`
-**{EMOJI} المالك:** {mention}"""
+zed_temp = """{ALIVE_TEXT}
+
+**{Z_EMOJI} قاعدۿ البيانات :** تعمل بنـجاح
+**{Z_EMOJI} إصـدار التـيليثون :** `{telever}`
+**{Z_EMOJI} إصـدار زدثــون :** `{zdver}`
+**{Z_EMOJI} إصـدار البـايثون :** `{pyver}`
+**{Z_EMOJI} الوقـت :** `{uptime}`
+**{Z_EMOJI} المسـتخدم:** {mention}
+**{Z_EMOJI} قنـاة السـورس :** [اضغـط هنـا](https://t.me/I_R_S_A_I)"""
 
 
-def jmthonalive_text():
-    EMOJI = gvarstatus("ALIVE_EMOJI") or "  ✥ "
-    jmthon_caption = "**سورس جمثون يعمل بنجاح**\n"
-    jmthon_caption += f"**{EMOJI} اصدار التيليثون :** `{version.__version__}\n`"
-    jmthon_caption += f"**{EMOJI} اصدار جمثون :** `{jmthonversion}`\n"
-    jmthon_caption += f"**{EMOJI} اصدار البايثون :** `{python_version()}\n`"
-    jmthon_caption += f"**{EMOJI} المالك:** {mention}\n"
-    return jmthon_caption
-
-
-@sbb_b.ar_cmd(pattern="السورس$")
-async def repo(event):
-    RR7PP = Config.TG_BOT_USERNAME
-    if event.reply_to_msg_id:
-        await event.get_reply_message()
-    response = await sbb_b.inline_query(RR7PP, "السورس")
-    await response[0].click(event.chat_id)
+@zedub.zed_cmd(
+    pattern="الفحص$",
+    command=("الفحص", plugin_category),
+    info={
+        "header": "- لـ التحـقق من ان البـوت يعمـل بنجـاح .. بخـاصيـة الانـلايـن ✓",
+        "الاسـتخـدام": [
+            "{tr}الفحص",
+        ],
+    },
+)
+async def amireallyialive(event):
+    "A kind of showing bot details by your inline bot"
+    reply_to_id = await reply_id(event)
+    Z_EMOJI = gvarstatus("ALIVE_EMOJI") or "✥┊"
+    zed_caption = "**بـوت  𝘼𝙇𝘼𝙋𝘼𝙏𝙃  يعمـل .. بنجـاح ☑️ 𓆩 **\n"
+    zed_caption += f"**{Z_EMOJI} إصـدار التـيليثون :** `{version.__version__}\n`"
+    zed_caption += f"**{Z_EMOJI} إصـدار زدثــون :** `{zedversion}`\n"
+    zed_caption += f"**{Z_EMOJI} إصـدار البـايثون :** `{python_version()}\n`"
+    zed_caption += f"**{Z_EMOJI} المسـتخدم :** {mention}\n"
+    results = await event.client.inline_query(Config.TG_BOT_USERNAME, zed_caption)
+    await results[0].click(event.chat_id, reply_to=reply_to_id, hide_via=True)
     await event.delete()
 
 
-ROZ_PIC = "https://graph.org/file/5f6ef13851dcf0d6fc72b.jpg"
-RAZAN = Config.TG_BOT_USERNAME
-ROZ_T = (
-    f"**⌯︙بوت جمثـون يعمل بنجاح 🤍،**\n"
-    f"**   - اصدار التليثون :** `1.23.0\n`"
-    f"**   - اصدار جمثون :** `4.0.0`\n"
-    f"**   - البوت المستخدم :** `{RAZAN}`\n"
-    f"**   - اصدار البايثون :** `3.9.6\n`"
-    f"**   - المستخدم :** {mention}\n"
-)
-
-if Config.TG_BOT_USERNAME is not None and tgbot is not None:
-
-    @tgbot.on(events.InlineQuery)
-    async def inline_handler(event):
-        builder = event.builder
-        result = None
-        query = event.text
-        await sbb_b.get_me()
-        if query.startswith("السورس") and event.query.user_id == sbb_b.uid:
-            buttons = [
-                [
-                    Button.url("قنـاة السـورس ⚙️", "https://t.me/JMTHON"),
-                    Button.url("المطـور 👨🏼‍💻", "https://t.me/R0R77"),
-                ]
-            ]
-            if ROZ_PIC and ROZ_PIC.endswith((".jpg", ".png", "gif", "mp4")):
-                result = builder.photo(
-                    ROZ_PIC, text=ROZ_T, buttons=buttons, link_preview=False
-                )
-            elif ROZ_PIC:
-                result = builder.document(
-                    ROZ_PIC,
-                    title="JMTHON - USERBOT",
-                    text=ROZ_T,
-                    buttons=buttons,
-                    link_preview=False,
-                )
-            else:
-                result = builder.article(
-                    title="JMTHON - USERBOT",
-                    text=ROZ_T,
-                    buttons=buttons,
-                    link_preview=False,
-                )
-            await event.answer([result] if result else None)
-
-
-# edit by ~ @RR77R
+@zedub.tgbot.on(CallbackQuery(data=re.compile(b"stats")))
+async def on_plug_in_callback_query_handler(event):
+    statstext = await zedalive(StartTime)
+    await event.answer(statstext, cache_time=0, alert=True)
